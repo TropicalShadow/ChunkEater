@@ -1,6 +1,6 @@
-package club.tesseract.minecraftplugintemplate.commands;
+package club.tesseract.sustain.commands;
 
-import club.tesseract.minecraftplugintemplate.MinecraftPluginTemplate;
+import club.tesseract.sustain.Sustain;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.annotation.CommandAlias;
@@ -11,11 +11,11 @@ import co.aikar.commands.annotation.Subcommand;
 /**
  * An example command.
  */
-@CommandAlias("example")
-public class ExampleCommand extends BaseCommand {
+@CommandAlias("debug")
+public class DebugCommand extends BaseCommand {
 
     @Dependency
-    private MinecraftPluginTemplate plugin;
+    private Sustain plugin;
 
 
     @Subcommand("default")

@@ -1,7 +1,9 @@
-package club.tesseract.minecraftplugintemplate;
+package club.tesseract.sustain;
 
-import club.tesseract.minecraftplugintemplate.commands.ExampleCommand;
-import club.tesseract.minecraftplugintemplate.utils.PluginMetaUtils;
+import club.tesseract.sustain.commands.DebugCommand;
+import club.tesseract.sustain.listener.ItemDropEvent;
+import club.tesseract.sustain.listener.PlayerSpawnListener;
+import club.tesseract.sustain.utils.PluginMetaUtils;
 import co.aikar.commands.PaperCommandManager;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,7 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * The main class of the plugin.
  */
-public final class MinecraftPluginTemplate extends JavaPlugin {
+public final class Sustain extends JavaPlugin {
 
     private PaperCommandManager commandManager;
 
@@ -24,7 +26,10 @@ public final class MinecraftPluginTemplate extends JavaPlugin {
         }
 
         commandManager = new PaperCommandManager(this);
-        commandManager.registerCommand(new ExampleCommand());
+        commandManager.registerCommand(new DebugCommand());
+
+        getServer().getPluginManager().registerEvents(new PlayerSpawnListener(), this);
+        getServer().getPluginManager().registerEvents(new ItemDropEvent(this), this);
 
         commandManager.setDefaultExceptionHandler((command, registeredCommand, sender, args, t) -> {
             sender.sendMessage("An error occurred while executing the command.");
@@ -42,7 +47,7 @@ public final class MinecraftPluginTemplate extends JavaPlugin {
         this.getLogger().info("Plugin disabled!");
     }
 
-    public static MinecraftPluginTemplate getPlugin() {
-        return MinecraftPluginTemplate.getPlugin(MinecraftPluginTemplate.class);
+    public static Sustain getPlugin() {
+        return Sustain.getPlugin(Sustain.class);
     }
 }

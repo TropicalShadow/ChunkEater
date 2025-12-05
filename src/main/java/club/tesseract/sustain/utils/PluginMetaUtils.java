@@ -1,6 +1,6 @@
-package club.tesseract.minecraftplugintemplate.utils;
+package club.tesseract.sustain.utils;
 
-import club.tesseract.minecraftplugintemplate.MinecraftPluginTemplate;
+import club.tesseract.sustain.Sustain;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +35,11 @@ public final class PluginMetaUtils {
 
 
 
-        try (InputStream pluginMetaIS = MinecraftPluginTemplate.getPlugin()
+        try (InputStream pluginMetaIS = Sustain.getPlugin()
                 .getResource("plugin-meta.properties")) {
             Map<String, Object> pluginMetaData = new HashMap<>();
             if (pluginMetaIS == null) {
-                MinecraftPluginTemplate.getPlugin()
+                Sustain.getPlugin()
                         .getLogger().warning("Plugin meta file not found.");
                 return pluginMeta;
             }
@@ -61,9 +61,9 @@ public final class PluginMetaUtils {
 
             pluginMeta = PluginMeta.fromProperties(pluginMetaData);
         } catch (IOException e) {
-            MinecraftPluginTemplate.getPlugin()
+            Sustain.getPlugin()
                     .getLogger().warning("Failed to read plugin meta file.");
-            MinecraftPluginTemplate.getPlugin()
+            Sustain.getPlugin()
                             .getLogger().log(Level.WARNING,
                             e, () -> "Failed to read plugin meta file.");
         }
@@ -94,9 +94,9 @@ public final class PluginMetaUtils {
                 bstatsPluginId = null;
             }
             String pluginVersion = (String) properties.getOrDefault("plugin_version",
-                    MinecraftPluginTemplate.getPlugin().getPluginMeta().getVersion());
+                    Sustain.getPlugin().getPluginMeta().getVersion());
             String pluginName = (String) properties.getOrDefault("plugin_name",
-                    MinecraftPluginTemplate.getPlugin().getPluginMeta().getName());
+                    Sustain.getPlugin().getPluginMeta().getName());
 
             return new PluginMeta(
                     pluginName,
@@ -113,8 +113,8 @@ public final class PluginMetaUtils {
          */
         public static PluginMeta empty() {
             return new PluginMeta(
-                    MinecraftPluginTemplate.getPlugin().getPluginMeta().getName(),
-                    MinecraftPluginTemplate.getPlugin().getPluginMeta().getVersion(),
+                    Sustain.getPlugin().getPluginMeta().getName(),
+                    Sustain.getPlugin().getPluginMeta().getVersion(),
                     null);
         }
     }
