@@ -51,6 +51,8 @@ repositories {
 
     // Aikar's Repository
     maven("https://repo.aikar.co/content/groups/aikar/")
+
+    maven("https://repo.extendedclip.com/releases/")
 }
 
 dependencies {
@@ -58,6 +60,7 @@ dependencies {
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.9.3")
     implementation("io.papermc:paperlib:1.0.8")
     spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
+    compileOnly("me.clip:placeholderapi:2.11.7")
 
     // Command Framework (Aikar's Command Framework)
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")

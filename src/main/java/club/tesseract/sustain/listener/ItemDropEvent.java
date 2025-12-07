@@ -1,102 +1,116 @@
 package club.tesseract.sustain.listener;
 
+import club.tesseract.sustain.GameFinishEvent;
 import club.tesseract.sustain.Sustain;
+import club.tesseract.sustain.SustainContext;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockType;
+import org.bukkit.block.Campfire;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
+import java.time.format.TextStyle;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ItemDropEvent implements Listener {
 
-    private final NamespacedKey amount = NamespacedKey.fromString("sustain:fuckyou");
-    private final NamespacedKey isRed = NamespacedKey.fromString("sustain:fuckyoutwo");
-
-    private final AtomicLong bluePoints = new AtomicLong(60 * 10);
-    private final AtomicLong redPoints = new AtomicLong(60 * 10);
-
-    private Scoreboard scoreboard = null;
-    private Objective objective = null;
     private final Sustain plugin;
 
     public ItemDropEvent(Sustain plugin) {
         this.plugin = plugin;
-        this.plugin.getServer().getScheduler().runTask(plugin, this::getScoreboard);
         this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if(objective == null)return;
-            bluePoints.updateAndGet(i -> Math.max(0, i - 1));
-            redPoints.updateAndGet(i -> Math.max(0, i - 1));
-            objective.getScore("blue").customName(getScoreComponent(true));
-            objective.getScore("red").customName(getScoreComponent(false));
+            if(plugin.getContext().isPaused()) return;
+            plugin.getContext().decreasePoint(1,true);
+            plugin.getContext().decreasePoint(1,false);
+            GameFinishEvent event = plugin.getContext().isFinished();
+            if(event != null){
+                event.callEvent();
+            }
         }, 60, 20L);
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        getAndSetScoreboard(player);
-    }
+    public void gameFinish(GameFinishEvent e){
+        Player[] winners = e.getWinners();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            boolean isWinner = false;
+            for (Player winner : winners) {
+                if (winner != null && winner.getUniqueId().equals(player.getUniqueId())) {
+                    isWinner = true;
+                    break;
+                }
+            }
 
-    void getAndSetScoreboard(Player player) {
-        getScoreboard();
-        player.setScoreboard(scoreboard);
-        scoreboard.getTeam("red").addPlayer(player);
-    }
+            if (e.getState() == GameFinishEvent.FINISH_STATE.TIE) {
+                player.sendMessage(Component.text("It's a tie!", NamedTextColor.YELLOW));
+                continue;
+            }
 
-    Component getScoreComponent(boolean isBlue) {
-        if (isBlue) {
-            return Component.textOfChildren(
-                    Component.text("BLUE", NamedTextColor.BLUE),
-                    Component.space(),
-                    Component.text(toTimeString(bluePoints.get()))
-            );
-        } else {
-            return Component.textOfChildren(
-                    Component.text("RED", NamedTextColor.RED),
-                    Component.space(),
-                    Component.text(toTimeString(redPoints.get()))
-            );
+            if (isWinner) {
+                player.sendMessage(Component.text("You won!", NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+            } else {
+                player.sendMessage(Component.text("You lost!", NamedTextColor.RED));
+            }
         }
     }
 
-    Scoreboard getScoreboard() {
-        if (scoreboard == null) {
-            this.scoreboard = this.plugin.getServer().getScoreboardManager().getNewScoreboard();
-            this.objective = scoreboard.registerNewObjective("sustain", "dummy");
-            this.objective.displayName(Component.text("Sustain", NamedTextColor.GOLD));
-            this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-            this.objective.getScore("red").numberFormat(NumberFormat.blank());
-            this.objective.getScore("red").customName(getScoreComponent(false));
-            this.objective.getScore("blue").numberFormat(NumberFormat.blank());
-            this.objective.getScore("blue").customName(getScoreComponent(true));
-            this.scoreboard.registerNewTeam("red").addEntry("red");
-            this.scoreboard.registerNewTeam("blue").addEntry("blue");
+    @EventHandler
+    public void onDamage(EntityDamageByBlockEvent e){
+        Block damager = e.getDamager();
+
+        // Cancel damage and set it to 0 when the damager is a campfire or soul campfire
+        Material type = damager.getType();
+        if (type == Material.CAMPFIRE || type == Material.SOUL_CAMPFIRE) {
+            e.setDamage(0);
+            e.setCancelled(true);
         }
-        return scoreboard;
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        Block block = event.getBlock();
-        if (block.getType().equals(BlockType.CAMPFIRE)) {
-            block.getChunk().getPersistentDataContainer().set(isRed, PersistentDataType.BOOLEAN, true);
-        } else if (block.getType().equals(BlockType.SOUL_CAMPFIRE)) {
-            block.getChunk().getPersistentDataContainer().set(isRed, PersistentDataType.BOOLEAN, false);
+        Block block = event.getBlockAgainst();
+        if(!(block.getType() == Material.CAMPFIRE && block.getType() == Material.SOUL_CAMPFIRE)){
+            return;
         }
+        Player player = event.getPlayer();
+
+        boolean isBlue = false;
+
+        if (block.getType().equals(Material.CAMPFIRE)) {
+            isBlue = false;
+        } else if (block.getType().equals(Material.SOUL_CAMPFIRE)) {
+            isBlue = true;
+        } else {
+            return;
+        }
+
+        event.setCancelled(false);
+        event.setBuild(false);
+        ItemStack itemInHand = event.getItemInHand();
+        Campfire campfire = (Campfire) block;
+        campfire.setItem(1, itemInHand);
+        player.getInventory().remove(itemInHand);
+        long duration = blockToValue(itemInHand.getType()) * itemInHand.getAmount();
+        plugin.getContext().increasePoint(duration,isBlue);
+        player.sendMessage("Points gained " + SustainContext.toTimeString(duration));
     }
 
     @EventHandler
@@ -106,14 +120,6 @@ public class ItemDropEvent implements Listener {
         if (!item.getItemStack().getType().isBlock()) return;
         item.getScheduler().runAtFixedRate(plugin, (task) -> {
             if (item.isOnGround()) {
-                if (item.getItemStack().getType().equals(Material.BARRIER)) {
-                    item.getChunk().getPersistentDataContainer().set(amount, PersistentDataType.LONG, 0L);
-                    player.sendMessage("Points reset");
-                    objective.getScore("blue").customName(getScoreComponent(true));
-                    objective.getScore("red").customName(getScoreComponent(false));
-                    item.remove();
-                    return;
-                }
 
                 // get block under item
                 Location loc = item.getLocation();
@@ -121,7 +127,7 @@ public class ItemDropEvent implements Listener {
                 Block block = world.getBlockAt(loc);
                 Block blockUnder = world.getBlockAt(loc.subtract(0, 1, 0));
 
-                boolean isBlue = false;
+                boolean isBlue;
 
                 if (block.getType().equals(Material.CAMPFIRE) || blockUnder.getType().equals(Material.CAMPFIRE)) {
                     isBlue = false;
@@ -131,39 +137,21 @@ public class ItemDropEvent implements Listener {
                     return;
                 }
 
-                // TODO - check if block below is campfire, if so, consume and do shit
-                // TODO - get item value multiply by item qty
-
-                long f = blockToValue(item.getItemStack().getType()) * item.getItemStack().getAmount();
-                long result;
-                if (isBlue) {
-                    result = bluePoints.updateAndGet(i -> i + f);
-                } else {
-                    result = redPoints.updateAndGet(i -> i + f);
+                if (item.getItemStack().getType().equals(Material.BARRIER)) {
+                    plugin.getContext().resetPoints(isBlue);
+                    player.sendMessage("Points reset");
+                    item.remove();
+                    return;
                 }
 
-                if (isBlue)
-                    objective.getScore("blue").customName(getScoreComponent(true));
-                else
-                    objective.getScore("red").customName(getScoreComponent(false));
-
-                player.sendMessage("You now have " + result + " sustain points");
+                long f = blockToValue(item.getItemStack().getType()) * item.getItemStack().getAmount();
+                long result = plugin.getContext().increasePoint(f, isBlue);
+                player.sendMessage("You now have " + SustainContext.toTimeString(result) + " sustain points");
                 item.getWorld().spawnParticle(Particle.EXPLOSION, item.getLocation(), 10);
                 item.remove();
                 task.cancel();
             }
         }, null, 20L, 10);
-    }
-
-    public static String toTimeString(long seconds) {
-        long hours = seconds / 3600;
-        long minutes = (seconds % 3600) / 60;
-        long secondsLeft = seconds % 60;
-        if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, secondsLeft);
-        }
-
-        return String.format("%02d:%02d", minutes, secondsLeft);
     }
 
     /**
@@ -173,6 +161,7 @@ public class ItemDropEvent implements Listener {
      * @return block duration
      */
     long blockToValue(Material material) {
+        // TODO - rewrite this shit
         plugin.getLogger().info(">" + material.getHardness() + " " + material.name());
         if (material.equals(Material.AIR)) return 0;
         if (material.equals(Material.BARRIER)) return 0;
@@ -180,12 +169,9 @@ public class ItemDropEvent implements Listener {
         if (hardness == -1) return 0;
         if (hardness <= 1) {
             hardness += 1;
-            return (long) (hardness * 60);
+            return (long) hardness;
         }
-        if (hardness <= 6) return (long) (hardness * 60);
-        if (hardness == 22) return 1200; // 20 minutes
-
-        return (long) (material.getHardness() * 1.5);
+        return (long) hardness;
     }
 
 }

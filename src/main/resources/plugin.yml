@@ -4,5 +4,6 @@ main: @package@.@name@
 api-version: '1.21'
 load: STARTUP
 authors: [TropicalShadow]
+softdepend: ["PlaceholderAPI"]
 description: Templatable plugin for quicker development
 website: https://me.tesseract.club

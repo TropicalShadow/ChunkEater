@@ -1,8 +1,7 @@
 package club.tesseract.sustain;
 
-import club.tesseract.sustain.commands.DebugCommand;
+import club.tesseract.sustain.commands.ControlCommand;
 import club.tesseract.sustain.listener.ItemDropEvent;
-import club.tesseract.sustain.listener.PlayerSpawnListener;
 import club.tesseract.sustain.utils.PluginMetaUtils;
 import co.aikar.commands.PaperCommandManager;
 import org.bstats.bukkit.Metrics;
@@ -14,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Sustain extends JavaPlugin {
 
     private PaperCommandManager commandManager;
+    private final SustainContext context = new SustainContext();
 
     @Override
     public void onEnable() {
@@ -24,11 +24,11 @@ public final class Sustain extends JavaPlugin {
             new Metrics(this, pluginId);
             getLogger().info("bStats metrics enabled!");
         }
+        new PapiExtension(this).register();
 
         commandManager = new PaperCommandManager(this);
-        commandManager.registerCommand(new DebugCommand());
+        commandManager.registerCommand(new ControlCommand());
 
-        getServer().getPluginManager().registerEvents(new PlayerSpawnListener(), this);
         getServer().getPluginManager().registerEvents(new ItemDropEvent(this), this);
 
         commandManager.setDefaultExceptionHandler((command, registeredCommand, sender, args, t) -> {
@@ -49,5 +49,9 @@ public final class Sustain extends JavaPlugin {
 
     public static Sustain getPlugin() {
         return Sustain.getPlugin(Sustain.class);
+    }
+
+    public SustainContext getContext() {
+        return context;
     }
 }
