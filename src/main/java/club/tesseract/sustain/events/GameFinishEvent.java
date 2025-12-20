@@ -1,36 +1,39 @@
-package club.tesseract.sustain;
+package club.tesseract.sustain.events;
 
-import org.bukkit.entity.Player;
+import club.tesseract.sustain.TeamManager;
+
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GameFinishEvent extends Event {
-
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final FINISH_STATE state;
-    private final Player[] winners;
+    private final @Nullable TeamManager.Team winningTeam;
 
-    public GameFinishEvent(FINISH_STATE state, Player... winners) {
+    public GameFinishEvent(FINISH_STATE state, @Nullable TeamManager.Team winningTeam) {
         this.state = state;
-        this.winners = winners;
+        this.winningTeam = winningTeam;
     }
 
     public FINISH_STATE getState() {
         return state;
     }
 
-    public Player[] getWinners() {
-        return winners;
+    @Nullable
+    public TeamManager.Team getWinningTeam() {
+        return winningTeam;
     }
 
 
     public enum FINISH_STATE{
-        BLUE_WIN,
-        RED_WIN,
-        TIE;
+        TEAM_WIN,
+        TIE,
+        FORCE_END,
+        ;
     }
 
     @Override

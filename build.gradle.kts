@@ -6,8 +6,8 @@ import java.util.TimeZone
 plugins {
     id("checkstyle")
     id("com.github.spotbugs") version "6.2.2"
-    id("io.github.goooler.shadow") version "8.1.8"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.gradleup.shadow") version "9.3.0"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
     id("java")
 }
 
@@ -56,7 +56,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.9.3")
     implementation("io.papermc:paperlib:1.0.8")
     spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
@@ -95,9 +95,11 @@ tasks {
     }
 
     runServer{
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
         downloadPlugins{
-            modrinth("voidgen", "2.3.3")
+            modrinth("voidgen", "2.3.4")
+            //modrinth("chunky", "1.4.40")
+            github("PlaceholderAPI", "PlaceholderAPI", "2.11.7", "PlaceholderAPI-2.11.7.jar")
         }
     }
 

@@ -37,9 +37,9 @@ public class PapiExtension extends PlaceholderExpansion {
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         switch (params.toLowerCase()) {
             case "red_time":
-                return SustainContext.toTimeString(plugin.getContext().getPoints(false));
+                return SustainContext.toTimeString(plugin.getContext().getPoints(TeamManager.Team.RED));
             case "blue_time":
-                return SustainContext.toTimeString(plugin.getContext().getPoints(true));
+                return SustainContext.toTimeString(plugin.getContext().getPoints(TeamManager.Team.BLUE));
             default:
                 return null;
         }

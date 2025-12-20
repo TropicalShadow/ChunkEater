@@ -1,4 +1,4 @@
-package club.tesseract.sustain.utils;
+package club.tesseract.sustain.util;
 
 import club.tesseract.sustain.Sustain;
 import java.io.BufferedReader;
