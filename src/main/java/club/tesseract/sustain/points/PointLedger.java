@@ -1,5 +1,6 @@
 package club.tesseract.sustain.points;
 
+import club.tesseract.sustain.Sustain;
 import club.tesseract.sustain.TeamManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -7,6 +8,8 @@ import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -126,10 +129,14 @@ public class PointLedger {
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) {
             // noinspection ResultOfMethodCallIgnored
-            parent.mkdirs();
+            boolean success = parent.mkdirs();
+            if(!success){
+                Sustain.getPlugin().getLogger().warning("Failed to create folders for point ledger");
+                return;
+            }
         }
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             gson.toJson(snapshotMap(), writer);
         }
     }

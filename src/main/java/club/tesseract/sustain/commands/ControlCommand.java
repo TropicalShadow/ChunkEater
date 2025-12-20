@@ -6,6 +6,7 @@ import club.tesseract.sustain.TeamManager;
 import club.tesseract.sustain.events.GamePauseEvent;
 import club.tesseract.sustain.events.GameStartEvent;
 import club.tesseract.sustain.points.PointActor;
+import club.tesseract.sustain.points.PointLedger;
 import club.tesseract.sustain.util.MessageFx;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.CommandHelp;
@@ -21,6 +22,8 @@ import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import static co.aikar.commands.ACFBukkitUtil.sendMsg;
@@ -184,9 +187,9 @@ public class ControlCommand extends BaseCommand {
     @Subcommand("exportledger")
     void exportLedger(CommandIssuer issuer) {
         try {
-            java.io.File exportsDir = new java.io.File(plugin.getDataFolder(), "exports");
-            String fileName = club.tesseract.sustain.points.PointLedger.defaultJsonFileName(() -> new java.util.Date());
-            java.io.File out = new java.io.File(exportsDir, fileName);
+            final File exportsDir = new File(plugin.getDataFolder(), "exports");
+            final String fileName = PointLedger.defaultJsonFileName(Date::new);
+            File out = new File(exportsDir, fileName);
             plugin.getContext().getPointLedger().writeJson(out);
             MessageFx.issuerInfo(issuer, "Ledger exported to: " + out.getAbsolutePath());
         } catch (Exception ex) {

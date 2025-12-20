@@ -13,6 +13,8 @@ public final class GlobalBukkitTicker implements Listener {
     private int tick;
     private int activeGameTicking;
 
+    private GlobalBukkitTicker(){}
+
     public static void register(Sustain plugin){
         Bukkit.getServer().getPluginManager().registerEvents(INSTANCE, plugin);
     }
@@ -44,10 +46,5 @@ public final class GlobalBukkitTicker implements Listener {
 
     public static int getActiveTicks(){
         return INSTANCE.getActiveGameTicking();
-    }
-
-    public static boolean every(int period, Entity entity){
-        int within = Math.abs(entity.getUniqueId().hashCode()) % period;
-        return entity.getTicksLived() % period == within;
     }
 }

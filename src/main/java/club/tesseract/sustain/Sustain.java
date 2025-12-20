@@ -1,7 +1,6 @@
 package club.tesseract.sustain;
 
 import club.tesseract.sustain.commands.ControlCommand;
-import club.tesseract.sustain.listener.BrandingListener;
 import club.tesseract.sustain.listener.GameRuntimeListener;
 import club.tesseract.sustain.listener.LobbyListener;
 import club.tesseract.sustain.listener.WorldReaderListener;
@@ -40,14 +39,12 @@ public final class Sustain extends JavaPlugin {
             new Metrics(this, pluginId);
             getLogger().info("bStats metrics enabled!");
         }
-        new PapiExtension(this).register();
 
         commandManager = new PaperCommandManager(this);
         commandManager.enableUnstableAPI("help");
         commandManager.registerCommand(new ControlCommand());
 
         Bukkit.getServer().getPluginManager().registerEvents(new WorldReaderListener(this), this);
-        getServer().getPluginManager().registerEvents(new BrandingListener(this), this);
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new GameRuntimeListener(this), this);
         getServer().getPluginManager().registerEvents(context.getActionBarScheduler(), this);

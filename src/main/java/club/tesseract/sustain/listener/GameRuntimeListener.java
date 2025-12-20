@@ -5,6 +5,7 @@ import club.tesseract.sustain.SustainContext;
 import club.tesseract.sustain.TeamManager;
 import club.tesseract.sustain.events.*;
 import club.tesseract.sustain.points.PointActor;
+import club.tesseract.sustain.points.PointLedger;
 import club.tesseract.sustain.util.GameModeHelper;
 import club.tesseract.sustain.util.MessageFx;
 import club.tesseract.sustain.util.WorldUtils;
@@ -39,6 +40,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.scoreboard.Team;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -265,9 +267,9 @@ public final class GameRuntimeListener implements Listener {
         MessageFx.audienceInfo(Audience.audience(Bukkit.getOnlinePlayers()), Component.text("Returning to lobby in 10 seconds...", NamedTextColor.GRAY));
         // Export ledger to JSON before we reset
         try {
-            java.io.File exportsDir = new java.io.File(plugin.getDataFolder(), "exports");
-            String fileName = club.tesseract.sustain.points.PointLedger.defaultJsonFileName(Date::new);
-            java.io.File out = new java.io.File(exportsDir, fileName);
+            File exportsDir = new File(plugin.getDataFolder(), "exports");
+            String fileName = PointLedger.defaultJsonFileName(Date::new);
+            File out = new File(exportsDir, fileName);
             plugin.getContext().getPointLedger().writeJson(out);
             plugin.getLogger().info("Ledger exported to: " + out.getAbsolutePath());
         } catch (Exception ex) {
@@ -453,6 +455,9 @@ public final class GameRuntimeListener implements Listener {
     public void onTeamDeath(TeamDeathEvent e) {
         TeamManager.Team team = e.getTeam();
         TeamManager.TeamData data = plugin.getContext().getTeamManager().getTeamData(team);
+        if(data == null) {
+            throw new RuntimeException("No data found for team " + team.name());
+        }
         Team bukkitTeam = data.bukkitTeam();
         if (bukkitTeam == null) return;
         for (OfflinePlayer op : bukkitTeam.getPlayers()) {
